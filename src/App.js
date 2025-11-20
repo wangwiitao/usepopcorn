@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StarRating from "./StarRating";
 
 const tempMovieData = [
@@ -207,8 +207,21 @@ function Logo() {
   );
 }
 function Search({ query, setQuery }) {
+  const searchInput = useRef(null);
+  useEffect(function () {
+    function callback(e) {
+      if (document.activeElement === searchInput.current) return;
+      if (e.code === "Enter") {
+        searchInput.current.focus();
+        setQuery("");
+      }
+    }
+    document.addEventListener("keydown", callback);
+    return () => document.removeEventListener("keydown", callback);
+  }, [setQuery]);
   return (
     <input
+      ref={searchInput}
       className="search"
       type="text"
       placeholder="Search movies..."
@@ -301,6 +314,21 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     onAddWatched(newWatchedMovie);
     onCloseMovie();
   }
+  useEffect(
+    function () {
+      function callback(e) {
+        if (e.code === "Escape") {
+          onCloseMovie();
+        }
+      }
+      document.addEventListener("keydown", callback);
+
+      return function () {
+        document.removeEventListener("keydown", callback);
+      };
+    },
+    [onCloseMovie]
+  );
 
   useEffect(
     function () {
